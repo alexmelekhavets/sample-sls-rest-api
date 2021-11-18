@@ -25,6 +25,9 @@ export class Middleware {
       const logger = this.app
         .createLogger()
         .child({ awsRequestId: context.awsRequestId });
+
+      logger.info(event);
+
       const validator = new Validator(route, this.schemas, logger);
 
       // validate request

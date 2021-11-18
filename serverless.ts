@@ -52,6 +52,12 @@ const serverlessConfiguration: AWS = {
           http: {
             method: "post",
             path: "/devices",
+            authorizer: {
+              type: "COGNITO_USER_POOLS",
+              authorizerId: {
+                Ref: "ApiGatewayAuthorizer",
+              },
+            },
           },
         },
       ],
@@ -77,6 +83,39 @@ const serverlessConfiguration: AWS = {
           },
         },
       ],
+    },
+  },
+  resources: {
+    Resources: {
+      CognitoUserPool: {
+        Type: "AWS::Cognito::UserPool",
+        Properties: {
+          UserPoolName: "iot-api-user-pool",
+          UsernameAttributes: ["email"],
+          AutoVerifiedAttributes: ["email"],
+        },
+      },
+      CognitoUserPoolClient: {
+        Type: "AWS::Cognito::UserPoolClient",
+        Properties: {
+          ClientName: "iot-api-user-pool-client",
+          UserPoolId: {
+            Ref: "CognitoUserPool",
+          },
+          ExplicitAuthFlows: ["ADMIN_NO_SRP_AUTH"],
+          GenerateSecret: false,
+        },
+      },
+      ApiGatewayAuthorizer: {
+        Type: "AWS::ApiGateway::Authorizer",
+        Properties: {
+          Name: "iot-app-apigateway-authorizer",
+          IdentitySource: "method.request.header.Authorization",
+          Type: "COGNITO_USER_POOLS",
+          RestApiId: { Ref: "ApiGatewayRestApi" },
+          ProviderARNs: [{ "Fn::GetAtt": ["CognitoUserPool", "Arn"] }],
+        },
+      },
     },
   },
 };
