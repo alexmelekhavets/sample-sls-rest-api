@@ -1,4 +1,8 @@
 import { Db, MongoClient } from "mongodb";
+import * as path from "path";
+
+// IMPORTANT! this ssl certificate is required for db connection
+import "../assets/rds-combined-ca-bundle.pem";
 
 export interface IDbAdapter {
   connect(): Promise<void>;
@@ -11,7 +15,16 @@ class DbAdapter implements IDbAdapter {
   private db: Db;
 
   constructor() {
-    this.mongoClient = new MongoClient(process.env.MONGODB_URI);
+    const pathToCAFile = path.resolve(
+      __dirname,
+      "./../assets/rds-combined-ca-bundle.pem"
+    );
+
+    this.mongoClient = new MongoClient(process.env.MONGODB_URI, {
+      ssl: true,
+      sslCA: pathToCAFile,
+      retryWrites: false,
+    });
   }
 
   async connect(): Promise<void> {

@@ -18,9 +18,28 @@ const serverlessConfiguration: AWS = {
     },
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1",
-      MONGODB_URI: "specify-your-mongo-db-uri",
+      MONGODB_URI: "specify-your-document-db-uri",
       MONGODB_DB: "iot-app",
     },
+    vpc: {
+      securityGroupIds: [
+        {
+          "Fn::ImportValue": "docdb:LambdaToDocDbSecurityGroup:securityGroupId",
+        },
+      ],
+      subnetIds: [
+        {
+          "Fn::ImportValue": "vpc:privateSubnet1",
+        },
+        {
+          "Fn::ImportValue": "vpc:privateSubnet2",
+        },
+        {
+          "Fn::ImportValue": "vpc:privateSubnet3",
+        },
+      ],
+    },
+    timeout: 15,
   },
   functions: {
     getDevices: {
